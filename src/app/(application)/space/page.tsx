@@ -1,14 +1,14 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { LogOutIcon, PauseIcon, PlayIcon, UserIcon } from "lucide-react";
-import { magic } from "@/lib/magic";
 import showToast from "@/lib/show-toast";
-import { RPCError, SDKError } from "magic-sdk";
 import { ReactNode, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Connect from "./connection";
 import useRenderCount from "@/lib/hooks/use-render-count";
 import { Room } from "@/components/wrappers/room";
+import Connect from "@/components/connection";
+import { magic, handleError } from "@/lib/magic";
+import { removeSessionToken } from "@/lib/server-actions";
 
 export default function Space() {
   const router = useRouter();
@@ -16,66 +16,30 @@ export default function Space() {
   const sessionState = useSearchParams();
   const roomId = sessionState.get("roomId") || "";
 
+  const checkUser = async () => {
+    if (!magic) return console.log("Magic not initialized");
+    await magic.user
+      .isLoggedIn()
+      .then((data) => {
+        showToast({
+          message: data ? "User is logged in" : "User is not logged in",
+          type: data ? "success" : "error",
+        });
+      })
+      .catch(handleError);
+  };
   useEffect(() => {
     if (!magic) return console.log("Magic not initialized");
-
     magic.user
       .isLoggedIn()
       .then((isLoggedIn) => {
-        if (!isLoggedIn) router.push("/login");
-      })
-      .catch((e) => {
-        console.log(e);
-        if (e instanceof RPCError || SDKError) {
-          console.log(e.code);
-          showToast({ message: e.message, type: "error" });
-        } else {
-          showToast({ message: "Something went wrong", type: "error" });
+        if (!isLoggedIn) {
+          console.log("this should not happen");
+          removeSessionToken();
         }
-      });
+      })
+      .catch(handleError);
   }, [router]);
-
-  const checkUser = () => {
-    if (!magic) return console.log("Magic not initialized");
-
-    magic.user
-      .getInfo()
-      .then((data) => {
-        console.log(data);
-        showToast({
-          message: "User info fetched, check console",
-          type: "success",
-        });
-      })
-      .catch((e) => {
-        console.log(e);
-        if (e instanceof RPCError || SDKError) {
-          console.log(e.code);
-          showToast({ message: e.message, type: "error" });
-        } else {
-          showToast({ message: "Something went wrong", type: "error" });
-        }
-      });
-  };
-
-  const logout = () => {
-    if (!magic) return console.log("Magic not initialized");
-
-    magic.user
-      .logout()
-      .then(() => {
-        router.push("/");
-      })
-      .catch((e) => {
-        console.log(e);
-        if (e instanceof RPCError || SDKError) {
-          console.log(e.code);
-          showToast({ message: e.message, type: "error" });
-        } else {
-          showToast({ message: "Something went wrong", type: "error" });
-        }
-      });
-  };
 
   const CollabApp = ({ children }: { children?: ReactNode }) => (
     <div className="flex items-center justify-center min-h-screen ">
@@ -107,7 +71,16 @@ export default function Space() {
           <PauseIcon className="w-5 h-5 mr-2" />
           End shared session
         </Button>
-        <Button className="w-full " variant="outline" onClick={logout}>
+        <Button
+          className="w-full "
+          variant="outline"
+          onClick={() => {
+            console.log("logOut");
+            if (!magic) return console.log("Magic not initialized");
+            magic.user.logout();
+            removeSessionToken();
+          }}
+        >
           <LogOutIcon className="w-5 h-5 mr-2" />
           Logout
         </Button>
