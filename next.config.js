@@ -5,13 +5,13 @@ const nextConfig = {
       source: "/login",
       has: [{ type: "cookie", key: "token" }],
       destination: "/space",
-      permanent: true,
+      permanent: false,
     },
     {
       source: "/space",
       missing: [{ type: "cookie", key: "token" }],
       destination: "/login",
-      permanent: true,
+      permanent: false,
     },
   ],
 };

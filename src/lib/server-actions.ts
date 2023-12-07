@@ -1,6 +1,7 @@
 "use server";
 import { Magic } from "@magic-sdk/admin";
 import bcrypt from "bcrypt";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 let mAdmin = new Magic(process.env.MAGIC_SECRET_KEY);
@@ -23,7 +24,8 @@ export const setSessionToken = async (didToken: string) => {
   }
 };
 
-export const removeSessionToken = () => {
+export const removeSessionToken = async () => {
   cookies().delete("token");
+  revalidatePath("/space");
   redirect("/login");
 };
