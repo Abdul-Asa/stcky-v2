@@ -2,17 +2,13 @@
 import { magic } from "@/lib/magic";
 import showToast from "@/lib/show-toast";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { setSessionToken } from "@/lib/server-actions";
 import useTimeout from "@/lib/hooks/use-timeout";
 
-export default function OAuth({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
+export default function OAuth() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
   const [message, setMessage] = useState("Redirecting you soon...");
 
   useTimeout(() => {
@@ -24,8 +20,8 @@ export default function OAuth({
   useEffect(() => {
     if (!magic) return console.log("Magic not initialized");
     if (
-      !searchParams.magic_credential &&
-      !searchParams.magic_oauth_request_id
+      !searchParams.get("magic_credential") &&
+      !searchParams.get("magic_oauth_request_id")
     ) {
       setMessage("No Credentials found");
       return;

@@ -27,5 +27,5 @@ export const setSessionToken = async (didToken: string) => {
 export const removeSessionToken = async () => {
   cookies().delete("token");
   revalidatePath("/space");
-  redirect("/login");
+  revalidatePath("/login");
 };

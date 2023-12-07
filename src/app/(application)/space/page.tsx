@@ -36,6 +36,7 @@ export default function Space() {
         if (!isLoggedIn) {
           console.log("this should not happen");
           removeSessionToken();
+          router.push("/login");
         }
       })
       .catch(handleError);
@@ -79,6 +80,7 @@ export default function Space() {
             if (!magic) return console.log("Magic not initialized");
             magic.user.logout();
             removeSessionToken();
+            router.push("/login");
           }}
         >
           <LogOutIcon className="w-5 h-5 mr-2" />
